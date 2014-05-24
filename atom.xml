@@ -1,27 +1,213 @@
----
-layout: nil
----
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
 
-  <title><![CDATA[{{ site.title }}]]></title>
-  <link href="{{ site.url }}/atom.xml" rel="self"/>
-  <link href="{{ site.url }}/"/>
-  <updated>{{ site.time | date_to_xmlschema }}</updated>
-  <id>{{ site.url }}/</id>
+  <title><![CDATA[子曾经曰过]]></title>
+  <link href="http://www.sgxiang.com/atom.xml" rel="self"/>
+  <link href="http://www.sgxiang.com/"/>
+  <updated>2014-05-24T21:56:37+08:00</updated>
+  <id>http://www.sgxiang.com/</id>
   <author>
-    <name><![CDATA[{{ site.author | strip_html }}]]></name>
-    {% if site.email %}<email><![CDATA[{{ site.email }}]]></email>{% endif %}
+    <name><![CDATA[韩利军]]></name>
+    <email><![CDATA[hancky@sina.com]]></email>
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
-  {% for post in site.posts limit: 20 %}
+  
   <entry>
-    <title type="html"><![CDATA[{{ post.title | cdata_escape }}]]></title>
-    <link href="{{ site.url }}{{ post.url }}"/>
-    <updated>{{ post.date | date_to_xmlschema }}</updated>
-    <id>{{ site.url }}{{ post.id }}</id>
-    <content type="html"><![CDATA[{{ post.content | expand_urls: site.url | cdata_escape }}]]></content>
+    <title type="html"><![CDATA[用两个栈(Stack)实现一个队列(Queue)]]></title>
+    <link href="http://www.sgxiang.com/blog/2014/05/24/yong-liang-ge-zhan-stack-shi-xian-%5B%3F%5D-ge-dui-lie-queue/"/>
+    <updated>2014-05-24T21:47:00+08:00</updated>
+    <id>http://www.sgxiang.com/blog/2014/05/24/yong-liang-ge-zhan-stack-shi-xian-[?]-ge-dui-lie-queue</id>
+    <content type="html"><![CDATA[<p>用C++描述，题目大致是这样的：</p>
+
+<p>已知下面Stack类及其3个方法Push、Pop和 Count，请用2个Stack实现Queue类的入队(Enqueue)出队(Dequeue)方法。</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>class Stack
+</span><span class='line'>{
+</span><span class='line'>…
+</span><span class='line'>public:
+</span><span class='line'>         void Push(int x); // Push an element in stack;
+</span><span class='line'>         int Pop();  // Pop an element out of stack;
+</span><span class='line'>         int Count() const;     // Return the number of the elements in stack;
+</span><span class='line'>…
+</span><span class='line'>};
+</span><span class='line'> 
+</span><span class='line'>class Queue
+</span><span class='line'>{
+</span><span class='line'>…
+</span><span class='line'>public:
+</span><span class='line'>         void Enqueue(int x);
+</span><span class='line'>         int Dequeue();
+</span><span class='line'> 
+</span><span class='line'>private:
+</span><span class='line'>         Stack s1;
+</span><span class='line'>         Stack s2;
+</span><span class='line'>…
+</span><span class='line'>};</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这道题应该不算难，比起《编程之美》中微软那些什么“翻烙饼”的面试题，难度上差远了。况且，由于时间关系，我一般也不要求面试者写代码，只描述清楚思路即可。出这道题，主要考察3点：</p>
+
+<ol>
+<li>在短时间内，能不能找到解决这道题的足够清晰的思路（思维是否敏捷、清晰）。</li>
+<li>能不能在单向表述中，清楚地描述自己的思路和想法（表述能力是否达到要求）。</li>
+<li>对于某些具体细节，能不能考虑到（是否足够细致）。</li>
+</ol>
+
+
+<p>总体上，以10人为例，实际的结果大致是：</p>
+
+<ol>
+<li>8个人可以找到解决答案，2个人无法找到答案（即使进行了必要的提示，曾经有位号称美国MIT深造2年，之后在Google美国公司工作过8个月的兄弟，也没做出来）。</li>
+<li>8个找到答案的人中，6个找到的方法相同，2个人找到其它变种。</li>
+<li>在这8个人中，有1个人可以不经提示，同时想到大众方法和变种。</li>
+</ol>
+
+
+<p>大多数人的思路是：始终维护s1作为存储空间，以s2作为临时缓冲区。
+入队时，将元素压入s1。
+出队时，将s1的元素逐个“倒入”（弹出并压入）s2，将s2的顶元素弹出作为出队元素，之后再将s2剩下的元素逐个“倒回”s1。
+见下面示意图：
+ <img src="http://images.cnblogs.com/cnblogs_com/wanghui9072229/201111/20111122200217730.jpg" title="stack and queue" alt="Smaller icon" /></p>
+
+<p>上述思路，可行性毋庸置疑。但有一个细节是可以优化一下的。即：在出队时，将s1的元素逐个“倒入”s2时，原在s1栈底的元素，不用“倒入”s2（即只“倒”s1.Count()-1个），可直接弹出作为出队元素返回。这样可以减少一次压栈的操作。约有一半人，经提示后能意识到此问题。</p>
+
+<p>上述思路，有些变种，如：
+入队时，先判断s1是否为空，如不为空，说明所有元素都在s1，此时将入队元素直接压入s1；如为空，要将s2的元素逐个“倒回”s1，再压入入队元素。
+出队时，先判断s2是否为空，如不为空，直接弹出s2的顶元素并出队；如为空，将s1的元素逐个“倒入”s2，把最后一个元素弹出并出队。
+有些人能同时想到大众方法和变种，应该说头脑还是比较灵光的。</p>
+
+<p>相对于第一种方法，变种的s2好像比较“懒”，每次出队后，并不将元素“倒回”s1，如果赶上下次还是出队操作，效率会高一些，但下次如果是入队操作，效率不如第一种方法。我有时会让面试者分析比较不同方法的性能。我感觉（没做深入研究），入队、出队操作随机分布时，上述两种方法总体上时间复杂度和空间复杂度应该相差无几（无非多个少个判断）。</p>
+
+<p>真正性能较高的，其实是另一个变种。即：
+入队时，将元素压入s1。
+出队时，判断s2是否为空，如不为空，则直接弹出顶元素；如为空，则将s1的元素逐个“倒入”s2，把最后一个元素弹出并出队。
+这个思路，避免了反复“倒”栈，仅在需要时才“倒”一次。但在实际面试中很少有人说出，可能是时间较少的缘故吧。</p>
+
+<p>以上几个思路乍看没什么问题了，但其实还是有个细节要考虑的。其实无论什么方法和情况，都要考虑没有元素可供出队时的处理（2个栈都为空的时候，出队操作一定会引起异常）。在实际写代码时，忽略这些判断或异常处理，程序会出现问题。所以，能不能考虑到这些细节，也体现了个人的素养。</p>
+]]></content>
   </entry>
-  {% endfor %}
+  
+  <entry>
+    <title type="html"><![CDATA[memcpy memmove区别和实现]]></title>
+    <link href="http://www.sgxiang.com/blog/2014/05/24/memcpy-memmovequ-bie-he-shi-xian/"/>
+    <updated>2014-05-24T17:44:00+08:00</updated>
+    <id>http://www.sgxiang.com/blog/2014/05/24/memcpy-memmovequ-bie-he-shi-xian</id>
+    <content type="html"><![CDATA[<p>memcpy与memmove的目的都是将N个字节的源内存地址的内容拷贝到目标内存地址中。</p>
+
+<p>但当源内存和目标内存存在重叠时，memcpy会出现错误，而memmove能正确地实施拷贝，但这也增加了一点点开销。</p>
+
+<h4>memmove的处理措施：</h4>
+
+<p>（1）当源内存的首地址等于目标内存的首地址时，不进行任何拷贝</p>
+
+<p>（2）当源内存的首地址大于目标内存的首地址时，实行正向拷贝</p>
+
+<p>（3）当源内存的首地址小于目标内存的首地址时，实行反向拷贝</p>
+
+<h4>memcpy实现</h4>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>void* memcpy(void* dest, const void* src, size_t n) 
+</span><span class='line'>{
+</span><span class='line'>    char*      d = (char*) dest;
+</span><span class='line'>    const char*  s = (const char*) src;
+</span><span class='line'>    while(n-–) 
+</span><span class='line'>       *d++ = *s++;
+</span><span class='line'>    return dest;
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<h4>memmove实现</h4>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>void* memmove(void* dest, const void* src, size_t n)
+</span><span class='line'>{
+</span><span class='line'>    char*     d  = (char*) dest;
+</span><span class='line'>    const char*  s = (const char*) src;
+</span><span class='line'>  
+</span><span class='line'>    if (s&gt;d) 
+</span><span class='line'>    {
+</span><span class='line'>         // start at beginning of s
+</span><span class='line'>         while (n--)
+</span><span class='line'>            *d++ = *s++;
+</span><span class='line'>    }
+</span><span class='line'>    else if (s&lt;d)
+</span><span class='line'>    {
+</span><span class='line'>        // start at end of s
+</span><span class='line'>        d = d+n-1;
+</span><span class='line'>        s = s+n-1;
+</span><span class='line'>  
+</span><span class='line'>        while (n--)
+</span><span class='line'>           *d-- = *s--;
+</span><span class='line'>    }
+</span><span class='line'>    return dest;
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<h4>示意图：</h4>
+
+<ol>
+<li>内存低端 &lt;&mdash;&mdash;-s&mdash;&mdash;&ndash;> &lt;&mdash;&mdash;-d&mdash;&mdash;&ndash;> 内存高端 start at end of s</li>
+<li>内存低端 &lt;&mdash;&mdash;-s&mdash;&lt;==>&mdash;d&mdash;&mdash;&ndash;>      内存高端 start at end of s</li>
+<li>内存低端 &lt;&mdash;&mdash;-sd&mdash;&mdash;&ndash;>              内存高端 do nothing</li>
+<li>内存低端 &lt;&mdash;&mdash;-d&mdash;&lt;==>&mdash;s&mdash;&mdash;&ndash;>      内存高端 start at beginning of s</li>
+<li>内存低端 &lt;&mdash;&mdash;-d&mdash;&mdash;&ndash;> &lt;&mdash;&mdash;-s&mdash;&mdash;&ndash;> 内存高端 start at beginning of s</li>
+</ol>
+
+
+<p>转自<a href="http://www.cnblogs.com/kekec/archive/2011/07/22/2114107.html">http://www.cnblogs.com/kekec/archive/2011/07/22/2114107.html</a></p>
+]]></content>
+  </entry>
+  
 </feed>
